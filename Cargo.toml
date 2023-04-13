@@ -1,5 +1,5 @@
 [package]
-name = "tvm-dep-test"
+name = "triton-vm-scaffold"
 version = "0.1.0"
 edition = "2021"
 authors = ["Triton Software AG"]

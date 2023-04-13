@@ -1936,7 +1936,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tvm-dep-test"
+name = "triton-vm-scaffold"
 version = "0.1.0"
 dependencies = [
  "triton-opcodes",
