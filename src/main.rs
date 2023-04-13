@@ -55,5 +55,12 @@ fn main() {
         panic!("Verification error: {error}");
     }
     assert!(verdict.unwrap());
-    println!("Success! Output: {public_output:?}");
+    println!(
+        "Success! Output: [{}]",
+        public_output
+            .into_iter()
+            .map(|x| x.value().to_string())
+            .collect::<Vec<_>>()
+            .join(", ")
+    );
 }
