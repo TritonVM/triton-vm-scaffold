@@ -10,7 +10,7 @@ fn main() {
     // The example program given here expects one public input `x` and one secret input `y`.
     // It asserts that (x·y)² = 17 and returns 1337.
     // Note that all arithmetic is in the prime field with 2^64 - 2^32 + 1 elements.
-    let source_code = "read_io divine mul dup0 mul push 17 eq assert push 1337 write_io halt";
+    let source_code = "read_io divine mul dup 0 mul push 17 eq assert push 1337 write_io halt";
 
     // Parse the Triton assembly into a program.
     let program = Program::from_code(source_code).unwrap();
