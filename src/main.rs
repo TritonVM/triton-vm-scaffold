@@ -1,10 +1,3 @@
-use triton_opcodes::program::Program;
-use triton_vm::proof::Claim;
-use triton_vm::stark::*;
-use triton_vm::table::master_table::MasterBaseTable;
-use triton_vm::vm;
-use twenty_first::shared_math::b_field_element::BFieldElement;
-
 fn main() {
     // The source of the program that is to be run in Triton VM. Written in Triton assembly.
     // The example program given here expects one public input `x` and one secret input `y`.
@@ -12,55 +5,27 @@ fn main() {
     // Note that all arithmetic is in the prime field with 2^64 - 2^32 + 1 elements.
     let source_code = "read_io divine mul dup 0 mul push 17 eq assert push 1337 write_io halt";
 
-    // Parse the Triton assembly into a program.
-    let program = Program::from_code(source_code).unwrap();
-
     // Define public and secret inputs.
-    let public_input = [42].map(BFieldElement::new).to_vec();
-    let secret_input = [16372729857439537988].map(BFieldElement::new).to_vec();
+    // Since arithmetic is in the prime field, the inputs must be in canonical representation,
+    // i.e., smaller than the prime field's modulus 2^64 - 2^32 + 1. Otherwise, proof generation
+    // will be aborted.
+    let public_input = [42];
+    let secret_input = [16372729857439537988];
 
-    // Generate
-    // - the witness required for proof generation, i.e., the Algebraic Execution Trace (AET),
-    // - the (public) output of the program, and
-    // - an error, if the program crashes.
-    let (aet, public_output, maybe_error) =
-        vm::simulate(&program, public_input.clone(), secret_input);
-
-    // Check for VM crashes, for example due to failing `assert` instructions or an out-of-bounds
-    // instruction pointer. Crashes signify a buggy program being fed to Triton VM.
-    // If the VM crashes, proof generation will fail.
-    if let Some(error) = maybe_error {
-        panic!("Simulation error: {error}");
-    }
-
-    // Set up the claim that is to be proven. The claim contains all public information. The
-    // proof is zero-knowledge with respect to everything else.
-    let claim = Claim {
-        input: public_input,
-        program: program.to_bwords(),
-        output: public_output.clone(),
-        padded_height: MasterBaseTable::padded_height(&aet),
-    };
-
-    // Construct a new STARK instance. The default parameters give a (conjectured) security level
-    // of 160 bits.
-    let stark = Stark::new(claim, StarkParameters::default());
-
-    // Generate the proof.
-    let proof = stark.prove(aet, &mut None);
+    // Generate the claim that is to be proven, as well as the corresponding proof.
+    // The claim contains all public information:
+    //   - the program's public input,
+    //   - the program's hash digest under hash function Tip5,
+    //   - the program's public output, and
+    //   - an upper bound for the number of steps the program was running for.
+    // Triton VM is zero-knowledge with respect to everything else.
+    // The proof contains the cryptographic information asserting the claim's correctness.
+    // Triton VM's default parameters give a (conjectured) security level of 160 bits.
+    let (claim, proof) = triton_vm::prove(source_code, &public_input, &secret_input);
+    let public_output = claim.output.to_owned();
 
     // Verify the proof.
-    let verdict = stark.verify(proof, &mut None);
-    if let Err(error) = verdict {
-        panic!("Verification error: {error}");
-    }
-    assert!(verdict.unwrap());
-    println!(
-        "Success! Output: [{}]",
-        public_output
-            .into_iter()
-            .map(|x| x.value().to_string())
-            .collect::<Vec<_>>()
-            .join(", ")
-    );
+    let verdict = triton_vm::verify(claim, proof);
+    assert!(verdict);
+    println!("Success! Output: {:?}", public_output);
 }
