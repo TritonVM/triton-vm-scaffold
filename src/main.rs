@@ -21,11 +21,13 @@ fn main() {
     // Triton VM is zero-knowledge with respect to everything else.
     // The proof contains the cryptographic information asserting the claim's correctness.
     // Triton VM's default parameters give a (conjectured) security level of 160 bits.
-    let (claim, proof) = triton_vm::prove(source_code, &public_input, &secret_input);
-    let public_output = claim.output.to_owned();
+    let (parameters, claim, proof) = triton_vm::prove(source_code, &public_input, &secret_input);
 
     // Verify the proof.
-    let verdict = triton_vm::verify(claim, proof);
+    let verdict = triton_vm::verify(&parameters, &claim, &proof);
     assert!(verdict);
-    println!("Success! Output: {:?}", public_output);
+
+    println!("Successfully verified proof.");
+    println!("Conjectured security level: {}", parameters.security_level);
+    println!("Verifiably correct output:  {:?}", claim.output);
 }
