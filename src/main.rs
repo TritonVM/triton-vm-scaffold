@@ -12,15 +12,8 @@ fn main() {
     let public_input = [42];
     let secret_input = [16372729857439537988];
 
-    // Generate the proof of correct execution for the given program.
-    // Triton VM's default parameters give a (conjectured) security level of 160 bits.
-    let (parameters, proof) =
-        triton_vm::prove_from_source(source_code, &public_input, &secret_input).unwrap();
-
-    // Verify the proof.
-    let verdict = triton_vm::verify(&parameters, &proof);
-    assert!(verdict);
-
+    // Generate the claim for the given program and input and the proof of correct execution.
+    //
     // The claim contains the following public information:
     //   - the program's hash digest under hash function Tip5,
     //   - the program's public input, and
@@ -28,9 +21,21 @@ fn main() {
     // Triton VM is zero-knowledge with respect to almost everything else.
     // The only other piece of revealed information is an upper bound for the number of steps
     // the program was running for.
-    let claim = proof.claim();
+    //
+    // Triton VM's default parameters give a (conjectured) security level of 160 bits.
+    let (parameters, claim, proof) =
+        triton_vm::prove_from_source(source_code, &public_input, &secret_input).unwrap();
+
+    // Verify the proof.
+    let verdict = triton_vm::verify(&parameters, &claim, &proof);
+    assert!(verdict);
 
     println!("Successfully verified proof.");
     println!("Verifiably correct output:  {:?}", claim.public_output());
-    println!("Conjectured security level: {}", parameters.security_level);
+
+    let conjectured_security_level = parameters.security_level;
+    println!("Conjectured security level is {conjectured_security_level} bits",);
+
+    let upper_bound_of_execution_steps = proof.padded_height();
+    println!("Executing the program took at most {upper_bound_of_execution_steps} cycles.",);
 }

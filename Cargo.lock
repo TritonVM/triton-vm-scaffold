@@ -1269,9 +1269,9 @@ dependencies = [
 
 [[package]]
 name = "triton-vm"
-version = "0.30.0"
+version = "0.31.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c81ca8e08a5eb545a01e216037a4b32b632ee93267c2d99d081e01b42a203cd2"
+checksum = "d9cabf94f2223f980b33bfc5d3e20139031da9be0af5b4a67959860bcada9d7b"
 dependencies = [
  "anyhow",
  "bincode",

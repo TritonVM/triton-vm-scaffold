@@ -6,4 +6,4 @@ authors = ["Triton Software AG"]
 readme = "README.md"
 
 [dependencies]
-triton-vm = "0.30"
+triton-vm = "0.31"
